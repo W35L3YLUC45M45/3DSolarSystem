@@ -1,0 +1,57 @@
+#version 330
+
+
+in vec2 v_uv;
+in vec3 v_color;
+in vec3 v_normal;
+in vec3 v_vertex;
+
+out vec4 fragColor;
+
+uniform vec3 u_light_dir;
+uniform vec3 u_camp_pos;
+
+uniform vec3 u_ambient;
+uniform vec3 u_diffuse;
+uniform vec3 u_specular;
+
+uniform float u_shininess;
+
+uniform vec3 u_color;
+uniform sampler2D u_texture;
+
+void main(void)
+{
+
+	//ORIGINAL
+
+	vec4 texture_color = texture(u_texture, v_uv);
+	//fragColor = vec4(texture_color.xyz, 1.0);
+
+//NEW SECTION
+
+	vec3 N = normalize(v_normal);
+
+	vec3 L = normalize(u_light_dir - v_vertex);
+
+	vec3 R = normalize(-reflect(L, N) );
+	vec3 E = normalize(u_camp_pos - v_vertex);
+	
+
+	//Phong Equation:										26/11/2020
+	
+		//Scalar Products
+		float NdotL = max ( dot (N,L) , 0.0 ) ;
+		float RdotE = max ( dot (R,E) , 0.0 ) ;
+
+	//3 main sections:
+	vec3 color_light = (texture_color.xyz * u_ambient);
+	vec3 diffuse_section = (texture_color.xyz * u_diffuse) * NdotL;
+	vec3 specular_section = (texture_color.xyz * u_specular) * pow(RdotE, u_shininess);
+	
+
+	vec3 final_color = color_light + diffuse_section + specular_section;
+
+
+	fragColor = vec4 (final_color, 1.0);
+}
